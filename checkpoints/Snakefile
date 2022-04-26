@@ -8,7 +8,7 @@ import re
 def b_output(wildcards):
     checkpoint_output = checkpoints.a.get(**wildcards).output[0]
     p = re.sub(".done$", "", checkpoint_output) # remove ext
-    i = glob_wildcards(p + "{i}.txt").i # infer the variables from present files # counter
+    i = glob_wildcards(p + "{i}.txt").i # infer variable from present files
     return expand(
         "results/b/b{i}.txt",
         i=i
@@ -36,6 +36,7 @@ checkpoint a:
         "date >{output} "
 
 
+## Intermediate rule
 rule b:
     input:
         "results/a/a{i}.txt"
@@ -48,7 +49,7 @@ rule b:
 def c_input_from_a_output(wildcards):
     checkpoint_output = checkpoints.a.get(**wildcards).output[0]
     p = re.sub(".done$", "", checkpoint_output) # remove ext
-    i = glob_wildcards(p + "{i}.txt").i # infer the variables from present files # counter
+    i = glob_wildcards(p + "{i}.txt").i # infer variable from present files
     return expand(
         "{p}{i}.txt",
         p=p,
@@ -56,6 +57,7 @@ def c_input_from_a_output(wildcards):
     )
 
 
+## Aggregate from intermediate files
 rule c:
     input:
         c_input_from_a_output
@@ -64,4 +66,4 @@ rule c:
     shell:
         "cat {input} "
         ">{output} "
-        
+
