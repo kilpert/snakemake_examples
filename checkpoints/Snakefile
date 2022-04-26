@@ -1,0 +1,67 @@
+## https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html
+
+
+import os
+import re
+
+
+def b_output(wildcards):
+    checkpoint_output = checkpoints.a.get(**wildcards).output[0]
+    p = re.sub(".done$", "", checkpoint_output) # remove ext
+    i = glob_wildcards(p + "{i}.txt").i # infer the variables from present files # counter
+    return expand(
+        "results/b/b{i}.txt",
+        i=i
+    )
+
+
+rule all:
+    input:
+        "results/a/a.done",
+        b_output,
+        "results/c/c.txt",
+
+
+## Rule that generates unknown output files
+checkpoint a:
+    output:
+        "results/a/a.done" # <------- the checkpoint output will be used as wildcard!!!
+    params:
+        outdir="results/a"
+    shell:
+        "count=$(shuf -i 2-5 -n1); "
+        "for i in $(seq $count); do "
+        "echo $i >{params.outdir}/a${{i}}.txt; "
+        "done; "
+        "date >{output} "
+
+
+rule b:
+    input:
+        "results/a/a{i}.txt"
+    output:
+        "results/b/b{i}.txt"
+    shell:
+        "cp {input} {output} "
+
+
+def c_input_from_a_output(wildcards):
+    checkpoint_output = checkpoints.a.get(**wildcards).output[0]
+    p = re.sub(".done$", "", checkpoint_output) # remove ext
+    i = glob_wildcards(p + "{i}.txt").i # infer the variables from present files # counter
+    return expand(
+        "{p}{i}.txt",
+        p=p,
+        i=i
+    )
+
+
+rule c:
+    input:
+        c_input_from_a_output
+    output:
+        "results/c/c.txt"
+    shell:
+        "cat {input} "
+        ">{output} "
+        
