@@ -46,7 +46,7 @@ rule b:
         "cp {input} {output} "
 
 
-def c_input_from_a_output(wildcards):
+def c_input(wildcards):
     checkpoint_output = checkpoints.a.get(**wildcards).output[0]
     p = re.sub(".done$", "", checkpoint_output) # remove ext
     i = glob_wildcards(p + "{i}.txt").i # infer variable from present files
@@ -60,7 +60,7 @@ def c_input_from_a_output(wildcards):
 ## Aggregate from intermediate files
 rule c:
     input:
-        c_input_from_a_output
+        c_input
     output:
         "results/c/c.txt"
     shell:
